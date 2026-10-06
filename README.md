@@ -30,7 +30,7 @@ Android Health
 
 # Installation
 
-1. Download the latest module()[https://github.com/sakthibalank-f/Film-Diary/releases/download/v1.2/XIMI_Marble_TimeToFull_Fix_KSU_v1.2.zip] ZIP from **Releases**.
+1. Download the latest [module](https://github.com/sakthibalank-f/Film-Diary/releases/download/v1.2/XIMI_Marble_TimeToFull_Fix_KSU_v1.2.zip) ZIP from **Releases**.
 2. Open KernelSU Manager.
 3. Install the ZIP as a module.
 4. Reboot.
