@@ -25,11 +25,11 @@ log() {
 }
 
 # raw (minutes) + charge status -> seconds for the health HAL.
-#   65535 / garbage / above CAP -> -1 (unknown: Android falls back to its own estimate)
+#   garbage / above CAP -> -1 (unknown: Android falls back to its own estimate)
 #   0 -> 0 only when the battery is Full (AIDL contract), otherwise -1
 conv() {
   case "$1" in ''|*[!0-9]*) echo -1; return ;; esac
-  [ "$1" -eq 65535 ] && { echo -1; return; }
+  
   if [ "$1" -eq 0 ]; then
     [ "$2" = "Full" ] && echo 0 || echo -1
     return
