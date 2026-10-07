@@ -120,10 +120,20 @@ fi
 log "active: node=$NODE MULT=$MULT CAP=$CAP raw='$raw' -> $last"
 
 lastraw="$raw"
+
+# Hold a fixed value without re-reading the gauge: write only when it changes.
+park() {
+  if [ "$last" != "$1" ]; then
+    printf '%s\n' "$1" > "$F"
+    last="$1"
+    lastraw=
+  fi
+}
+
 while :; do
   st="$(cat "$STATUS" 2>/dev/null)"
   case "$st" in
-    Charging|Full)
+    Charging)
       raw="$(cat "$RAWNODE" 2>/dev/null)"
       v="$(conv "$raw" "$st")"
       if [ "$v" != "$last" ]; then
@@ -134,19 +144,16 @@ while :; do
         log "raw='$raw' status=$st -> ${last}s"
         lastraw="$raw"
       fi
-      if [ "$st" = "Charging" ]; then
-        sleep "$INTERVAL"
-      else
-        sleep "${TTF_IDLE:-30}"
-      fi
+      sleep "$INTERVAL"
+      ;;
+    Full)
+      # Battery full: AIDL wants exactly 0.
+      park 0
+      sleep "${TTF_IDLE:-30}"
       ;;
     *)
-      # Not charging: Android ignores time-to-full, so skip the raw read.
-      if [ "$last" != "-1" ]; then
-        printf '%s\n' -1 > "$F"
-        last=-1
-        lastraw=
-      fi
+      # Not charging: Android ignores time-to-full. Park at -1 so a stale ETA
+      park -1
       sleep "${TTF_IDLE:-30}"
       ;;
   esac
