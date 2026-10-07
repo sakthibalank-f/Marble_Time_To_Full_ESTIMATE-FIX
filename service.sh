@@ -98,6 +98,7 @@ cleanup() {
   umount "$RAWNODE" 2>/dev/null
   rm -f "$PIDF"
 }
+trap 'cleanup; exit 0' INT TERM #try killing shell process immediately ^^
 trap cleanup EXIT INT TERM
 
 raw="$(cat "$RAWNODE" 2>/dev/null)"
@@ -120,19 +121,33 @@ log "active: node=$NODE MULT=$MULT CAP=$CAP raw='$raw' -> $last"
 
 lastraw="$raw"
 while :; do
-  raw="$(cat "$RAWNODE" 2>/dev/null)"
   st="$(cat "$STATUS" 2>/dev/null)"
-  v="$(conv "$raw" "$st")"
-  if [ "$v" != "$last" ]; then
-    printf '%s\n' "$v" > "$F"
-    last="$v"
-  fi
-  if [ "$raw" != "$lastraw" ]; then
-    log "raw='$raw' status=$st -> ${last}s"
-    lastraw="$raw"
-  fi
   case "$st" in
-    Charging) sleep "$INTERVAL" ;;
-    *) sleep "${TTF_IDLE:-30}" ;;
+    Charging|Full)
+      raw="$(cat "$RAWNODE" 2>/dev/null)"
+      v="$(conv "$raw" "$st")"
+      if [ "$v" != "$last" ]; then
+        printf '%s\n' "$v" > "$F"
+        last="$v"
+      fi
+      if [ "$raw" != "$lastraw" ]; then
+        log "raw='$raw' status=$st -> ${last}s"
+        lastraw="$raw"
+      fi
+      if [ "$st" = "Charging" ]; then
+        sleep "$INTERVAL"
+      else
+        sleep "${TTF_IDLE:-30}"
+      fi
+      ;;
+    *)
+      # Not charging: Android ignores time-to-full, so skip the raw read.
+      if [ "$last" != "-1" ]; then
+        printf '%s\n' -1 > "$F"
+        last=-1
+        lastraw=
+      fi
+      sleep "${TTF_IDLE:-30}"
+      ;;
   esac
 done
