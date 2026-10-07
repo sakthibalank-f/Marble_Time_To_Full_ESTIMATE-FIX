@@ -1,6 +1,6 @@
 id=marble_ttf_fix
 name=Marble Time-To-Full Fix
-version=v1.3.1
-versionCode=4
+version=v1.3.2
+versionCode=5
 author=paininflictor
 description=Fixes marble charging ETA by converting time_to_full_now from minutes to seconds. UwU .
